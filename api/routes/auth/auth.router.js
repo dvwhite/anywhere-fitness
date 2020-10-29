@@ -129,34 +129,39 @@ function register(req, res) {
  */
 
 function login(req, res) {
-  Users.findBy({ username: req.body.username })
-    .then(user => {
-      if (user.length !== 0) {
-        if (bcrypt.compareSync(req.body.password, user[0].password)) {
-          const token = generators.token(user[0]);
-          const validatedUser = {
-            id: user[0].id,
-            firstName: user[0].firstName,
-            lastName: user[0].lastName,
-            email: user[0].email,
-            username: user[0].username,
-            created_at: user[0].created_at,
-            updated_at: user[0].updated_at,
-            roleId: user[0].roleId,
-          };
-          res.json({
-            message: `Welcome back ${validatedUser.username}!`,
-            token,
-            user: validatedUser,
-          });
-        } else {
-          res.status(401).json({ message: 'Incorrect Password' });
+  try {
+    const user = Users.findBy({ username: req.body.username });
+    if (user.length) {
+      console.log("User:", user)
+      const isAuthenticated = bcrypt.compareSync(req.body.password, user[0].password);
+      console.log("Authed in:", isAuthenticated)
+      if (isAuthenticated) {
+        const token = generators.token(user[0]);
+        const validatedUser = {
+          id: user[0].id,
+          firstName: user[0].firstName,
+          lastName: user[0].lastName,
+          email: user[0].email,
+          username: user[0].username,
+          created_at: user[0].created_at,
+          updated_at: user[0].updated_at,
+          roleId: user[0].roleId,
         }
+        res.json({
+          message: `Welcome back ${validatedUser.username}!`,
+          token,
+          user: validatedUser,
+        });
       } else {
-        res.status(404).json({ message: 'Username is not in the system' });
+        res.status(401).json({ message: 'Incorrect Password' });
       }
-    })
-    .catch(err => res.status(500).json(err));
+    } else {
+      res.status(404).json({ message: 'Username is not in the system' });
+    }
+  } catch (err) {
+    console.error(err)
+    res.status(500).json(err);
+  }
 }
 
 authRouter.post('/register', register).post('/login', login);
