@@ -131,10 +131,8 @@ function register(req, res) {
 async function login(req, res) {
   try {
     const user = await Users.findBy({ username: req.body.username });
-    console.log("User:", user)
     if (user.length) {
       const isAuthenticated = bcrypt.compareSync(req.body.password, user[0].password);
-      console.log("Authed in:", isAuthenticated)
       if (isAuthenticated) {
         const token = generators.token(user[0]);
         const validatedUser = {

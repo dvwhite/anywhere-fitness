@@ -1,0 +1,5 @@
+pg
+
+user: admin
+pw: admin
+port: 6432
